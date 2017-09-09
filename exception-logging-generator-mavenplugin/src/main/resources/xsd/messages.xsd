@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="messages" type="messagesType"/>
+    <xs:complexType name="exceptionType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="package" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The package of the exception. Can be replaced by maven
+                            configuration. The class will be named by the message name with the
+                            suffix 'Exception'.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute type="xs:string" name="inherit" use="optional">
+                    <xs:annotation>
+                        <xs:documentation>
+                            To let the exception class inherit from another class,
+                            define it here. Using only a simple class name lets the
+                            maven plugin search for the defined class in this file pragmatically.
+                            To prevent this, use FQ.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute type="xs:string" name="returnCode" use="optional">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The return code defines the http return code. You can use
+                            this optional attribute to enrich your message for microservices.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="frontendMessageType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="locale" use="required">
+                    <xs:annotation>
+                        <xs:documentation>
+                            The locale code, known from java i18n bundle files like en for english or de for german.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="frontendMessagesType">
+        <xs:sequence>
+            <xs:element type="frontendMessageType" name="frontendMessage" maxOccurs="unbounded" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Add frontend messages to generate messages for the user.
+                        Normally, you would put this message as exception message
+                        to show the user about an error. Take a login process as example:
+                        the user tries to authentificates himself, but 1st: the password
+                        is wrong, 2nd: user name doesn't exists, 3rd: account is expired:
+                        for all incidents he will receive an 'user or password is wrong',
+                        so it is difficult to validate a user name or password. The real
+                        cause will be listed in backend message for the log files.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="messageType">
+        <xs:sequence>
+            <xs:element type="exceptionType" name="exception" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>
+                        The Exception type is optional and will create an exception for this incident.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element type="frontendMessagesType" name="frontendMessages" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="xs:string" name="backendMessage" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        The backend message contains sensitive information about the incident. This message is not
+                        internationalisable for log file reasons.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="domain" use="optional"/>
+        <xs:attribute type="xs:string" name="name" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    The return code defines the http return code. You can use
+                    this optional attribute to enrich your message for microservices.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="messagesType">
+        <xs:sequence>
+            <xs:element type="messageType" name="message" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute type="xs:string" name="default"/>
+    </xs:complexType>
+</xs:schema>
