@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.andreasgerhard.exceptgen</groupId>
+    <artifactId>exception-logging-generator</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>exception-logging-generator-maven-plugin</module>
+        <module>exception-logging-generator-commons</module>
+    </modules>
+
+    <name>Exception and logging generator</name>
+    <description>Maven plugin and project commons to generate internationalized exceptions and logging informations
+    </description>
+    <url>https://github.com/angerhard/exception-logging-generator</url>
+
+    <issueManagement>
+        <url>https://github.com/angerhard/exception-logging-generator/issues</url>
+        <system>GitHub</system>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/angerhard/exception-logging-generator</url>
+        <connection>scm:git:git://github.com/angerhard/exception-logging-generator.git</connection>
+        <developerConnection>scm:git:git@github.com:angerhard/exception-logging-generator.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <email>me@andreas-gerhard.com</email>
+            <name>Andreas Gerhard</name>
+            <url>https://github.com/angerhard</url>
+            <id>angerhard</id>
+        </developer>
+    </developers>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>3.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>3.5</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+</project>

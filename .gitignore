@@ -10,3 +10,24 @@ buildNumber.properties
 
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar
+*.iml
+.idea
+*.idea
+.idea/**
+.idea/inspectionProfiles/
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml
+exception-logging-generator-commons/exception-logging-generator-commons.iml
+exception-logging-generator-commons/target/**
+exception-logging-generator-commons/target
+exception-logging-generator-commons/.idea/**
+exception-logging-generator-commons/.idea
+exception-logging-generator-maven-plugin/exception-logging-generator-maven-plugin.iml
+exception-logging-generator-maven-plugin/target/**
+exception-logging-generator-maven-plugin/target
+exception-logging-generator-maven-plugin/.idea/**
+exception-logging-generator-maven-plugin/.idea
+
+exception-logging-generator.iml
