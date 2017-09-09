@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<messages
+        schemaLocation="https://www.w3schools.com/xml/note.xsd"
+
+        default="en">
+    <message name="Customer" domain="CUSTOMER.001">
+        <exception package="com.andreasgerhard.exception"
+                   inheried="com.andreasgerhard.exception.BusinessRuntimeException" returnCode="500"/>
+        <frontendMessages>
+            <frontendMessage locale="de">Es ist ein Fehler bei der Kundenbearbeitung aufgetreten.</frontendMessage>
+            <frontendMessage locale="en">An error has been occured during a customer operation.</frontendMessage>
+        </frontendMessages>
+        <backendMessage>General failure, please check cause.</backendMessage>
+    </message>
+    <message name="CustomerNotFound" domain="CUSTOMER.002">
+        <exception package="com.andreasgerhard.exception" inheried="CustomerException"
+                   returnCode="404"/>
+        <frontendMessages>
+            <frontendMessage locale="de">Der Kunde mit der ID {id:Integer} wurde nicht gefunden.</frontendMessage>
+            <frontendMessage locale="en">A customer with id {id:Integer} could not be found.</frontendMessage>
+        </frontendMessages>
+        <backendMessage>Customer not found with ID {id:Integer}.</backendMessage>
+    </message>
+    <message name="CustomerCreated" domain="CUSTOMER.003">
+        <frontendMessages>
+            <frontendMessage locale="de">Ein neuer Kunde mit der ID {id:Integer} wurde angelegt.</frontendMessage>
+            <frontendMessage locale="en">Created a new customer with id {id:Integer}.</frontendMessage>
+        </frontendMessages>
+        <backendMessage>A new customer has been created with id {id:Integer} and name {name:String}.</backendMessage>
+    </message>
+</messages>

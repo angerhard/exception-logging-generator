@@ -9,7 +9,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>exception-logging-generator-maven-plugin</module>
+        <module>exception-logging-generator-mavenplugin</module>
         <module>exception-logging-generator-commons</module>
     </modules>
 

@@ -1,0 +1,29 @@
+package ${e.exception.packageName};
+
+/**
+ *
+ */
+public class ${e.exception.fqClassName} extends ${e.exception.fqClassNameInherit} {
+
+    #foreach($p in $e.exception.frontEndParameters)
+    ${p.fieldDeclatation}
+    #end
+
+    public ${e.exception.fqClassName} (${e.exception.parameterString}) {
+        super();
+        #foreach($p in $e.exception.frontEndParameters)
+            ${p.parameterToField}
+        #end
+    }
+
+    public ${e.exception.fqClassName} (${e.exception.parameterString}, java.lang.Throwable causeThrowable) {
+        super(causeThrowable);
+        #foreach($p in $e.exception.frontEndParameters)
+            ${p.parameterToField}
+        #end
+    }
+
+
+
+}
+
