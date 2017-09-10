@@ -1,4 +1,4 @@
-package com.andreasgerhard.exceptgen;
+package com.andreas_gerhard.exceptgen;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,17 +26,10 @@ public class Mojo extends AbstractMojo implements Configurate {
     private String classPackageName;
 
     /**
-     * Root source path for generating the exceptions.
+     * Root source path for generating the exceptions and logging helper.
      */
     @Parameter( property = "generate-exceptions.src" )
-    private String srcPathForExceptions;
-
-    /**
-     * Define the path for generating i18n.properties.
-     * This path has to be relative to the maven project path.
-     */
-    @Parameter( property = "generate-exceptions.resources" )
-    private String srcPathForI18nFile;
+    private String srcPath;
 
     /**
      * The name of the i18n property file without .properties or any
@@ -70,13 +63,8 @@ public class Mojo extends AbstractMojo implements Configurate {
     }
 
     @Override
-    public String getSrcPathForExceptions() {
-        return srcPathForExceptions;
-    }
-
-    @Override
-    public String getSrcPathForI18nFile() {
-        return srcPathForI18nFile;
+    public String getSrcPath() {
+        return srcPath;
     }
 
     @Override

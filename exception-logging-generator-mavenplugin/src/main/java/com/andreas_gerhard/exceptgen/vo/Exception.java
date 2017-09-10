@@ -1,4 +1,4 @@
-package com.andreasgerhard.exceptgen.vo;
+package com.andreas_gerhard.exceptgen.vo;
 
 import java.util.ArrayList;
 import java.util.List;

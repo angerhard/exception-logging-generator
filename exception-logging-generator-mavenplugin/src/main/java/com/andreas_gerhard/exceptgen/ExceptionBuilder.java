@@ -1,9 +1,9 @@
-package com.andreasgerhard.exceptgen;
+package com.andreas_gerhard.exceptgen;
 
+import com.andreas_gerhard.exceptgen.vo.Entry;
+import com.andreas_gerhard.exceptgen.vo.Exception;
+import com.andreas_gerhard.exceptgen.vo.Parameter;
 import com.andreasgerhard.exceptgen.messages.*;
-import com.andreasgerhard.exceptgen.vo.Entry;
-import com.andreasgerhard.exceptgen.vo.Exception;
-import com.andreasgerhard.exceptgen.vo.Parameter;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -25,9 +25,15 @@ public class ExceptionBuilder {
 
     private Set<String> domainDuplicateChecker = new HashSet<>();
 
+    /**
+     * Generates the needed classes, given by the configuration of th emaven plugin.
+     * @param config the abstract configuration from maven plugin
+     * @throws java.lang.Exception something gone wrong -> see exception(
+     */
     public ExceptionBuilder(Configurate config) throws java.lang.Exception {
 
         List<Entry> entries = new ArrayList<>();
+        File srcPath = retrieveSrcPathFromConfiguration(config.getSrcPath());
 
         MessagesType messages = unmarshallXmlFile(config);
         for (MessageType messageType : messages.getMessage()) {
@@ -37,6 +43,42 @@ public class ExceptionBuilder {
             buildEntry(messageType, entry);
             buildException(config, messageType);
         }
+
+        postProcessFindInheritClassName(entries);
+        buildExceptionsFromTemplate(entries, srcPath);
+    }
+
+    private void postProcessFindInheritClassName(List<Entry> entries) {
+        for (Entry entry : entries) {
+            Exception exception = entry.getException();
+            if (exception != null
+                    && exception.getFqClassNameInherit() != null
+                    && !exception.getFqClassNameInherit().contains(".")) {
+                for (Entry eInterit : entries) {
+                    if (eInterit.getException() != null
+                            && eInterit.getException().getFqClassName() != null
+                            && eInterit.getException().getFqClassName().endsWith(exception.getFqClassNameInherit())) {
+                        exception.setFqClassNameInherit(eInterit.getException().getFqClassName());
+
+                    }
+                }
+            }
+        }
+    }
+
+    private static String ensureFirstLetterBig(String str) {
+        if (str != null && str.length() > 1) {
+            return str.substring(0, 1).toUpperCase() + str.substring(1);
+        }
+        return str;
+    }
+
+    private File retrieveSrcPathFromConfiguration(String srcPathForExceptions) throws java.lang.Exception {
+        File srcPathExceptions = new File(srcPathForExceptions);
+        if (!srcPathExceptions.isDirectory() && !srcPathExceptions.canWrite()) {
+            throw new java.lang.Exception(String.format("At least path %s must exists and has to be writable", srcPathForExceptions));
+        }
+        return srcPathExceptions;
     }
 
     private void buildEntry(MessageType messageType, Entry entry) {
@@ -77,17 +119,10 @@ public class ExceptionBuilder {
         return (MessagesType) unmarshaller.unmarshal(new File(config.getPathToMessageXml()));
     }
 
-    private static String ensureFirstLetterBig(String str) {
-        if (str != null && str.length() > 1) {
-            return str.substring(0, 1).toUpperCase() + str.substring(1);
-        }
-        return str;
-    }
-
     private void gainParameter(String text, Set<Parameter> result) {
         Pattern p = Pattern.compile("\\{(?<parameter>.*)\\}");
         Matcher matcher = p.matcher(text);
-        while(matcher.find()) {
+        while (matcher.find()) {
             Parameter parameter = new Parameter();
             result.add(parameter);
             String group = matcher.group();
@@ -124,21 +159,37 @@ public class ExceptionBuilder {
         ve.init();
     }
 
-    private void getExceptionTemplateFromClasspath(String templateName, List<Entry> entries) throws java.lang.Exception {
-        InputStream input = ExceptionBuilder.class.getClassLoader()
-                .getResourceAsStream("/template/" + templateName);
-        if (input == null) {
-            throw new IOException("Template file "+templateName+" doesn't exist");
-        }
-        VelocityContext context = new VelocityContext();
-        context.put("entries", entries);
+    private void buildExceptionsFromTemplate(List<Entry> entries, File srcTarget) throws java.lang.Exception {
 
-        Template template = ve.getTemplate("/template/" + templateName, "UTF-8");
-        String outFileName = File.createTempFile("report", ".html").getAbsolutePath();
-        BufferedWriter writer = new BufferedWriter(new FileWriter(new File(outFileName)));
-        template.merge(context, writer);
-        writer.flush();
-        writer.close();
+        InputStream input = ExceptionBuilder.class.getClassLoader()
+                .getResourceAsStream("/template/exception.vm");
+        if (input == null) {
+            throw new IOException("Template file exception.vm doesn't exist");
+        }
+
+        for (Entry entry : entries) {
+            if (entry.getException() != null) {
+                Exception exc = entry.getException();
+                File targetFile = new File(srcTarget, makeJavaFileAppendixFromFQ(exc.getFqClassName()));
+                targetFile.getParentFile().mkdirs();
+
+                VelocityContext context = new VelocityContext();
+                context.put("entries", entries);
+
+                Template template = ve.getTemplate("/template/exception.vm", "UTF-8");
+                BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile));
+                template.merge(context, writer);
+                writer.flush();
+                writer.close();
+
+            }
+        }
+
+    }
+
+    private String makeJavaFileAppendixFromFQ(String fq) {
+        String replace = String.format("/%s.java", fq.replace(".", "/"));
+        return replace;
     }
 
 

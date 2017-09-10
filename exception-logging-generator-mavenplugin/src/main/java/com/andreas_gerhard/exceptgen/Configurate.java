@@ -1,4 +1,4 @@
-package com.andreasgerhard.exceptgen;
+package com.andreas_gerhard.exceptgen;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -9,11 +9,10 @@ public interface Configurate {
 
     String getPathToMessageXml();
 
-    String getSrcPathForExceptions();
+    String getSrcPath();
 
     String getClassPackageName();
 
-    String getSrcPathForI18nFile();
 
     String getPropertyFileName();
 

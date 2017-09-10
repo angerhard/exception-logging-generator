@@ -1,4 +1,4 @@
-package com.andreasgerhard.exceptgen.vo;
+package com.andreas_gerhard.exceptgen.vo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ public class Entry {
     private String backendText;
     private String domain;
     private String name;
-    private Exception exception;
+    private com.andreas_gerhard.exceptgen.vo.Exception exception;
 
     public List<Parameter> getBackendParameters() {
         return backendParameters;
@@ -35,11 +35,11 @@ public class Entry {
         this.domain = domain;
     }
 
-    public Exception getException() {
+    public com.andreas_gerhard.exceptgen.vo.Exception getException() {
         return exception;
     }
 
-    public void setException(Exception exception) {
+    public void setException(com.andreas_gerhard.exceptgen.vo.Exception exception) {
         this.exception = exception;
     }
 
