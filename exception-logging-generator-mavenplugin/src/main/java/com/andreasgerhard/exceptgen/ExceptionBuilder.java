@@ -4,16 +4,24 @@ import com.andreasgerhard.exceptgen.messages.*;
 import com.andreasgerhard.exceptgen.vo.Entry;
 import com.andreasgerhard.exceptgen.vo.Exception;
 import com.andreasgerhard.exceptgen.vo.Parameter;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import java.io.File;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ExceptionBuilder {
+
+    private VelocityEngine ve;
 
     private Set<String> domainDuplicateChecker = new HashSet<>();
 
@@ -98,5 +106,41 @@ public class ExceptionBuilder {
             }
         }
     }
+
+
+    private void initTemplateEngineInternal() {
+        ve = new VelocityEngine();
+        ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+        ve.setProperty("classpath.resource.loader.class",
+                ClasspathResourceLoader.class.getName());
+        ve.init();
+    }
+
+    private void initTemplateEngineExternal() {
+        ve = new VelocityEngine();
+        ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "file");
+        ve.setProperty("file.resource.loader.class",
+                FileResourceLoader.class.getName());
+        ve.init();
+    }
+
+    private void getExceptionTemplateFromClasspath(String templateName, List<Entry> entries) throws java.lang.Exception {
+        InputStream input = ExceptionBuilder.class.getClassLoader()
+                .getResourceAsStream("/template/" + templateName);
+        if (input == null) {
+            throw new IOException("Template file "+templateName+" doesn't exist");
+        }
+        VelocityContext context = new VelocityContext();
+        context.put("entries", entries);
+
+        Template template = ve.getTemplate("/template/" + templateName, "UTF-8");
+        String outFileName = File.createTempFile("report", ".html").getAbsolutePath();
+        BufferedWriter writer = new BufferedWriter(new FileWriter(new File(outFileName)));
+        template.merge(context, writer);
+        writer.flush();
+        writer.close();
+    }
+
+
 
 }
