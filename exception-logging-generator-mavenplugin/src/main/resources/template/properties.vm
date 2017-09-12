@@ -1,0 +1,2 @@
+#foreach($e in $entries)#foreach($f in $e.exception.frontEndText)#if($f.locale==$language)${e.name}=${f.text}
+#end#end#end

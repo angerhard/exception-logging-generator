@@ -1,9 +1,8 @@
 package com.andreas_gerhard.exceptgen;
 
 import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.project.MavenProject;
 
-import java.util.Map;
+import java.io.File;
 
 public interface Configurate {
 
@@ -20,7 +19,7 @@ public interface Configurate {
 
     public Log getLog();
 
-    public Map getPluginContext();
+    File getBaseDir();
 
-    public MavenProject getProject();
+    String getResourcesPath();
 }

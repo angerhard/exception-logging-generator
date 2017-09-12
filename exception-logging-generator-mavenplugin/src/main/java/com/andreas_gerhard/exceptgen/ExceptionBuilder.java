@@ -3,8 +3,8 @@ package com.andreas_gerhard.exceptgen;
 import com.andreas_gerhard.exceptgen.vo.Entry;
 import com.andreas_gerhard.exceptgen.vo.Exception;
 import com.andreas_gerhard.exceptgen.vo.Parameter;
+import com.andreas_gerhard.exceptgen.vo.Text;
 import com.andreasgerhard.exceptgen.messages.*;
-import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
@@ -12,18 +12,22 @@ import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class ExceptionBuilder {
 
     private VelocityEngine ve;
 
     private Set<String> domainDuplicateChecker = new HashSet<>();
+    private final List<Entry> entries;
 
     /**
      * Generates the needed classes, given by the configuration of th emaven plugin.
@@ -32,20 +36,24 @@ public class ExceptionBuilder {
      */
     public ExceptionBuilder(Configurate config) throws java.lang.Exception {
 
-        List<Entry> entries = new ArrayList<>();
-        File srcPath = retrieveSrcPathFromConfiguration(config.getSrcPath());
+        entries = new ArrayList<>();
+        File srcPath = retrieveSrcPathFromConfiguration(config);
+        File resourcesPath = retrieveResourcePathFromConfiguration(config);
 
         MessagesType messages = unmarshallXmlFile(config);
         for (MessageType messageType : messages.getMessage()) {
             validateMessageType(config, messageType);
             Entry entry = new Entry();
+            entry.setProperties(config.getPropertyFileName());
             entries.add(entry);
             buildEntry(messageType, entry);
-            buildException(config, messageType);
+            buildException(config, messageType, entry);
         }
 
         postProcessFindInheritClassName(entries);
+        initTemplateEngineInternal();
         buildExceptionsFromTemplate(entries, srcPath);
+        buildPropertiesFromTemplate(entries, resourcesPath, config);
     }
 
     private void postProcessFindInheritClassName(List<Entry> entries) {
@@ -59,7 +67,6 @@ public class ExceptionBuilder {
                             && eInterit.getException().getFqClassName() != null
                             && eInterit.getException().getFqClassName().endsWith(exception.getFqClassNameInherit())) {
                         exception.setFqClassNameInherit(eInterit.getException().getFqClassName());
-
                     }
                 }
             }
@@ -73,12 +80,27 @@ public class ExceptionBuilder {
         return str;
     }
 
-    private File retrieveSrcPathFromConfiguration(String srcPathForExceptions) throws java.lang.Exception {
-        File srcPathExceptions = new File(srcPathForExceptions);
-        if (!srcPathExceptions.isDirectory() && !srcPathExceptions.canWrite()) {
-            throw new java.lang.Exception(String.format("At least path %s must exists and has to be writable", srcPathForExceptions));
+    private File retrieveSrcPathFromConfiguration(Configurate config) throws java.lang.Exception {
+        File srcPathExceptions = new File(config.getBaseDir(), config.getSrcPath());
+        return retrieveFile(srcPathExceptions);
+    }
+
+    private File retrieveResourcePathFromConfiguration(Configurate config) throws java.lang.Exception {
+        File srcPathExceptions = new File(config.getBaseDir(), config.getResourcesPath());
+        return retrieveFile(srcPathExceptions);
+    }
+
+    private File retrieveFile(File file) throws java.lang.Exception {
+        if (file.isFile()) {
+            throw new java.lang.Exception(String.format("At least path %s should not be a file", file));
         }
-        return srcPathExceptions;
+        if (!file.isDirectory()) {
+            file.mkdirs();
+        }
+        if (!file.isDirectory() && !file.canWrite()) {
+            throw new java.lang.Exception(String.format("At least path %s must exists and has to be writable", file));
+        }
+        return file;
     }
 
     private void buildEntry(MessageType messageType, Entry entry) {
@@ -90,20 +112,22 @@ public class ExceptionBuilder {
         entry.setBackendParameters(new ArrayList<>(backEndParams));
     }
 
-    private void buildException(Configurate config, MessageType messageType) {
+    private void buildException(Configurate config, MessageType messageType, Entry entry) {
         if (messageType.getException() != null) {
             ExceptionType exceptionType = messageType.getException();
             Exception exception = new Exception();
             exception.setPackageName(config.getClassPackageName() == null ? exceptionType.getPackage() : config.getClassPackageName());
-            exception.setFqClassName(exception.getPackageName() + ensureFirstLetterBig(messageType.getName()));
-            exception.setFqClassNameInherit(exception.getFqClassNameInherit());
+            exception.setFqClassName(String.format("%s.%sException", exception.getPackageName(), ensureFirstLetterBig(messageType.getName())));
+            exception.setFqClassNameInherit(exceptionType.getInherit());
             SortedSet<Parameter> frontEndParams = new TreeSet<>();
             FrontendMessagesType frontendMessages = messageType.getFrontendMessages();
             List<FrontendMessageType> frontendMessage = frontendMessages.getFrontendMessage();
             for (FrontendMessageType frontendMessageType : frontendMessage) {
                 gainParameter(frontendMessageType.getValue(), frontEndParams);
+                exception.getFrontEndText().add(new Text(frontendMessageType.getLocale(), frontendMessageType.getValue()));
             }
             exception.setFrontEndParameters(new ArrayList<>(frontEndParams));
+            entry.setException(exception);
         }
     }
 
@@ -113,19 +137,27 @@ public class ExceptionBuilder {
         }
     }
 
-    private MessagesType unmarshallXmlFile(Configurate config) throws JAXBException {
+    private MessagesType unmarshallXmlFile(Configurate config) throws java.lang.Exception {
+        File configXmlFile = new File(config.getBaseDir(), config.getPathToMessageXml());
+        if (!configXmlFile.exists()) {
+            throw new java.lang.Exception(String.format("Message xml not found at given position: %s", configXmlFile.getAbsolutePath()));
+        }
+
         JAXBContext jc = JAXBContext.newInstance(MessagesType.class);
         Unmarshaller unmarshaller = jc.createUnmarshaller();
-        return (MessagesType) unmarshaller.unmarshal(new File(config.getPathToMessageXml()));
+        FileInputStream fis = new FileInputStream(configXmlFile);
+        Source source = new StreamSource(fis);
+        JAXBElement<MessagesType> unmarshal = (JAXBElement<MessagesType>) unmarshaller.unmarshal(source, MessagesType.class);
+        return unmarshal.getValue();
     }
 
     private void gainParameter(String text, Set<Parameter> result) {
-        Pattern p = Pattern.compile("\\{(?<parameter>.*)\\}");
+        Pattern p = Pattern.compile("\\{(?<parameter>([^}]*?))\\}");
         Matcher matcher = p.matcher(text);
         while (matcher.find()) {
             Parameter parameter = new Parameter();
-            result.add(parameter);
-            String group = matcher.group();
+
+            String group = matcher.group("parameter");
             if (group.contains(":")) {
                 String[] split = group.split(":");
                 parameter.setName(split[0]);
@@ -139,6 +171,8 @@ public class ExceptionBuilder {
                 parameter.setName(group);
                 parameter.setFq("java.lang.String");
             }
+            parameter.setTag("\\\\{"+parameter.getName()+":([^}]*?))\\\\}");
+            result.add(parameter);
         }
     }
 
@@ -161,28 +195,58 @@ public class ExceptionBuilder {
 
     private void buildExceptionsFromTemplate(List<Entry> entries, File srcTarget) throws java.lang.Exception {
 
-        InputStream input = ExceptionBuilder.class.getClassLoader()
-                .getResourceAsStream("/template/exception.vm");
-        if (input == null) {
-            throw new IOException("Template file exception.vm doesn't exist");
-        }
-
         for (Entry entry : entries) {
             if (entry.getException() != null) {
+                InputStream input = ExceptionBuilder.class.getClassLoader()
+                        .getResourceAsStream("template/exception.vm");
+                if (input == null) {
+                    throw new IOException("Template path doesn't exist");
+                }
                 Exception exc = entry.getException();
-                File targetFile = new File(srcTarget, makeJavaFileAppendixFromFQ(exc.getFqClassName()));
+                File targetFile = new File(srcTarget, makeJavaFileAppendixFromFQ(exc.getFqClassName()) );
                 targetFile.getParentFile().mkdirs();
 
                 VelocityContext context = new VelocityContext();
-                context.put("entries", entries);
+                context.put("e", entry);
 
-                Template template = ve.getTemplate("/template/exception.vm", "UTF-8");
-                BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile));
-                template.merge(context, writer);
+                BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile, false));
+                ve.evaluate(context, writer, "exception.vm", new InputStreamReader(input));
+
                 writer.flush();
                 writer.close();
 
             }
+        }
+    }
+
+    private void buildPropertiesFromTemplate(List<Entry> entries, File srcTarget, Configurate config) throws java.lang.Exception {
+
+        Set<String> languages = entries.stream()
+                .filter(entry -> entry.getException() != null)
+                .map(entry -> entry.getException().getFrontEndText())
+                .flatMap(Collection::stream)
+                .map(Text::getLocale)
+                .collect(Collectors.toSet());
+
+        for (String language : languages) {
+            InputStream input = ExceptionBuilder.class.getClassLoader()
+                    .getResourceAsStream("template/properties.vm");
+            if (input == null) {
+                throw new IOException("Template path doesn't exist");
+            }
+
+            File targetFile = new File(srcTarget, config.getPropertyFileName() + "_" + language +" .properties");
+            targetFile.getParentFile().mkdirs();
+
+            VelocityContext context = new VelocityContext();
+            context.put("entries", entries);
+            context.put("language", language);
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile, false));
+            ve.evaluate(context, writer, "exception.vm", new InputStreamReader(input));
+
+            writer.flush();
+            writer.close();
         }
 
     }
@@ -192,6 +256,7 @@ public class ExceptionBuilder {
         return replace;
     }
 
-
-
+    public List<Entry> getEntries() {
+        return entries;
+    }
 }

@@ -7,7 +7,7 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
-import java.util.Map;
+import java.io.File;
 
 @org.apache.maven.plugins.annotations.Mojo(name="generate-exceptions")
 public class Mojo extends AbstractMojo implements Configurate {
@@ -26,10 +26,17 @@ public class Mojo extends AbstractMojo implements Configurate {
     private String classPackageName;
 
     /**
-     * Root source path for generating the exceptions and logging helper.
+     * Relative source path for generating the exceptions and logging helper.
      */
     @Parameter( property = "generate-exceptions.src" )
     private String srcPath;
+
+    /**
+     * Relative source path for generating the exceptions and logging helper.
+     * Will be generated in the defined resource path.
+     */
+    @Parameter( property = "generate-exceptions.resources" )
+    private String resourcesPath;
 
     /**
      * The name of the i18n property file without .properties or any
@@ -83,17 +90,17 @@ public class Mojo extends AbstractMojo implements Configurate {
     }
 
     @Override
-    public Map getPluginContext() {
-        return super.getPluginContext();
-    }
-
-    @Override
     public String getClassPackageName() {
         return classPackageName;
     }
 
     @Override
-    public MavenProject getProject() {
-        return project;
+    public File getBaseDir() {
+        return project.getBasedir();
+    }
+
+    @Override
+    public String getResourcesPath() {
+        return resourcesPath;
     }
 }

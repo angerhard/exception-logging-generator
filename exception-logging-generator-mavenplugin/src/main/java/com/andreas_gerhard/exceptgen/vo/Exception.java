@@ -1,5 +1,8 @@
 package com.andreas_gerhard.exceptgen.vo;
 
+import com.andreas_gerhard.exceptgen.ParameterUtil;
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,4 +53,22 @@ public class Exception {
     public void setFrontEndText(List<Text> frontEndText) {
         this.frontEndText = frontEndText;
     }
+
+    public String getParameterString(){
+        return ParameterUtil.getParameterString(getFrontEndParameters());
+    }
+
+    public String getParameterStringAppendix(){
+        return ParameterUtil.getParameterString(getFrontEndParameters())+(!getFrontEndParameters().isEmpty() ? "," : "");
+    }
+
+    public String getLocaleStr() {
+        List<Text> frontEndText = getFrontEndText();
+        List<String> locales = new ArrayList<>();
+        for (Text text : frontEndText) {
+            locales.add("\""+text.getLocale()+"\"");
+        }
+        return StringUtils.join(locales, ", ");
+    }
+
 }
