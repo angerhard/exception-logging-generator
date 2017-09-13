@@ -1,23 +1,27 @@
 package ${e.exception.packageName};
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 /**
  *
  */
-public class ${e.exception.fqClassName} extends ${e.exception.fqClassNameInherit} {
+public class ${e.exception.className} #if("$!{e.exception.fqClassNameInherit}" != "")extends ${e.exception.fqClassNameInherit} #{else}extends java.lang.Exception #end{
 
     private String _exceptionIdentificaionDomain = "${e.name}";
+    private Integer returnCode = #if("$!{e.exception.returnCode}" != "")${e.exception.returnCode}#{else}500#{end};
 
     #foreach($p in $e.exception.frontEndParameters)${p.fieldDeclatation}
     #end
 
-    public ${e.exception.fqClassName} (${e.exception.parameterString}) {
+    public ${e.exception.className} (${e.exception.parameterString}) {
         super();
 #foreach($p in $e.exception.frontEndParameters)        ${p.parameterToField}
 #end
     }
 
 
-    public ${e.exception.fqClassName} (${e.exception.parameterStringAppendix} java.lang.Throwable causeThrowable) {
+    public ${e.exception.className} (${e.exception.parameterStringAppendix} java.lang.Throwable causeThrowable) {
         super(causeThrowable);
 #foreach($p in $e.exception.frontEndParameters)        ${p.parameterToField}
 #end
@@ -25,7 +29,7 @@ public class ${e.exception.fqClassName} extends ${e.exception.fqClassNameInherit
 
     public String getMessagePayload() {
         StringBuilder result = new StringBuilder("{\n");
-        for (String locale : new String[]{${e.exception.localeStr}) {
+        for (String locale : new String[]{${e.exception.localeStr}}) {
             ResourceBundle resourceBundle = ResourceBundle.getBundle("${e.properties}", Locale.forLanguageTag(locale));
             String message = resourceBundle.getString(_exceptionIdentificaionDomain);
 #foreach($p in ${e.exception.frontEndParameters})            message = message.replaceAll("${p.tag}", String.valueOf(this.${p.name}));
@@ -34,6 +38,10 @@ public class ${e.exception.fqClassName} extends ${e.exception.fqClassNameInherit
         }
         result.append("}\n");
         return result.toString();
+    }
+
+    public int getReturnCode() {
+        return returnCode;
     }
 }
 

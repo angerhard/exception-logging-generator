@@ -1,26 +1,44 @@
 package com.andreas_gerhard.exceptgen;
 
-import com.andreas_gerhard.exceptgen.vo.Entry;
-import com.andreas_gerhard.exceptgen.vo.Exception;
-import com.andreas_gerhard.exceptgen.vo.Parameter;
-import com.andreas_gerhard.exceptgen.vo.Text;
-import com.andreasgerhard.exceptgen.messages.*;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.runtime.RuntimeConstants;
-import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import java.io.*;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
+
+import com.andreas_gerhard.exceptgen.vo.Entry;
+import com.andreas_gerhard.exceptgen.vo.Exception;
+import com.andreas_gerhard.exceptgen.vo.Parameter;
+import com.andreas_gerhard.exceptgen.vo.Text;
+import com.andreasgerhard.exceptgen.messages.ExceptionType;
+import com.andreasgerhard.exceptgen.messages.FrontendMessageType;
+import com.andreasgerhard.exceptgen.messages.FrontendMessagesType;
+import com.andreasgerhard.exceptgen.messages.MessageType;
+import com.andreasgerhard.exceptgen.messages.MessagesType;
 
 public class ExceptionBuilder {
 
@@ -118,7 +136,11 @@ public class ExceptionBuilder {
             Exception exception = new Exception();
             exception.setPackageName(config.getClassPackageName() == null ? exceptionType.getPackage() : config.getClassPackageName());
             exception.setFqClassName(String.format("%s.%sException", exception.getPackageName(), ensureFirstLetterBig(messageType.getName())));
+            exception.setClassName(String.format("%sException", ensureFirstLetterBig(messageType.getName())));
             exception.setFqClassNameInherit(exceptionType.getInherit());
+            if (exceptionType.getReturnCode()!= null && exceptionType.getReturnCode().matches("^\\d+$")) {
+                exception.setReturnCode(Integer.parseInt(exceptionType.getReturnCode()));
+            }
             SortedSet<Parameter> frontEndParams = new TreeSet<>();
             FrontendMessagesType frontendMessages = messageType.getFrontendMessages();
             List<FrontendMessageType> frontendMessage = frontendMessages.getFrontendMessage();
@@ -171,7 +193,7 @@ public class ExceptionBuilder {
                 parameter.setName(group);
                 parameter.setFq("java.lang.String");
             }
-            parameter.setTag("\\\\{"+parameter.getName()+":([^}]*?))\\\\}");
+            parameter.setTag("\\\\{"+parameter.getName()+":([^}]*?)\\\\}");
             result.add(parameter);
         }
     }
@@ -235,7 +257,7 @@ public class ExceptionBuilder {
                 throw new IOException("Template path doesn't exist");
             }
 
-            File targetFile = new File(srcTarget, config.getPropertyFileName() + "_" + language +" .properties");
+            File targetFile = new File(srcTarget, config.getPropertyFileName() + "_" + language + ".properties");
             targetFile.getParentFile().mkdirs();
 
             VelocityContext context = new VelocityContext();
