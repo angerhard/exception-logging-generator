@@ -1,0 +1,25 @@
+package ${e.masterPackageName};
+
+import java.util.Locale;
+import java.util.ResourceBundle;
+
+/**
+ *
+ */
+public abstract class ${e.masterClassName} extends ${e.masterInheritClassName} {
+
+    public ${e.masterClassName} () {
+        super();
+    }
+
+    public ${e.masterClassName} (java.lang.Throwable causeThrowable) {
+        super(causeThrowable);
+    }
+
+    public abstract String getMessagePayload();
+
+    public int getReturnCode() {
+        return 500;
+    }
+}
+

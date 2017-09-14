@@ -1,9 +1,9 @@
 package com.andreas_gerhard.exceptgen.vo;
 
-import com.andreas_gerhard.exceptgen.ParameterUtil;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.andreas_gerhard.exceptgen.ParameterUtil;
 
 public class Entry {
 
@@ -12,6 +12,7 @@ public class Entry {
     private String domain;
     private String name;
     private String properties;
+
     private com.andreas_gerhard.exceptgen.vo.Exception exception;
 
     public List<Parameter> getBackendParameters() {
@@ -61,6 +62,7 @@ public class Entry {
     public void setProperties(String properties) {
         this.properties = properties;
     }
+
 
     public String getParameterString() {
         return ParameterUtil.getParameterString(getBackendParameters());

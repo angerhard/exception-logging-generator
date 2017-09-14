@@ -2,7 +2,8 @@
 
 <messages
         schemaLocation="https://www.w3schools.com/xml/note.xsd"
-
+        masterException="com.andreasgerhard.exception.BusinessException"
+        masterExceptionInherit="java.lang.RuntimeException"
         default="en">
     <message name="Customer" domain="CUSTOMER.001">
         <exception package="com.andreasgerhard.exception"

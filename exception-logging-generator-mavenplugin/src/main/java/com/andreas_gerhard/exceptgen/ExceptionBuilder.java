@@ -32,6 +32,7 @@ import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 
 import com.andreas_gerhard.exceptgen.vo.Entry;
 import com.andreas_gerhard.exceptgen.vo.Exception;
+import com.andreas_gerhard.exceptgen.vo.MasterException;
 import com.andreas_gerhard.exceptgen.vo.Parameter;
 import com.andreas_gerhard.exceptgen.vo.Text;
 import com.andreasgerhard.exceptgen.messages.ExceptionType;
@@ -59,6 +60,8 @@ public class ExceptionBuilder {
         File resourcesPath = retrieveResourcePathFromConfiguration(config);
 
         MessagesType messages = unmarshallXmlFile(config);
+        MasterException masterException = retrieveMasterException(config, messages);
+
         for (MessageType messageType : messages.getMessage()) {
             validateMessageType(config, messageType);
             Entry entry = new Entry();
@@ -70,8 +73,30 @@ public class ExceptionBuilder {
 
         postProcessFindInheritClassName(entries);
         initTemplateEngineInternal();
-        buildExceptionsFromTemplate(entries, srcPath);
+
+        if (masterException != null) {
+            buildMasterExceptionsFromTemplate(srcPath, masterException);
+        }
+        buildExceptionsFromTemplate(entries, srcPath, masterException);
         buildPropertiesFromTemplate(entries, resourcesPath, config);
+    }
+
+    private MasterException retrieveMasterException(Configurate config, MessagesType messages) {
+        MasterException masterException = null;
+        if (messages.getMasterException() != null) {
+            masterException = new MasterException();
+            masterException.setMasterInheritClassName(messages.getMasterExceptionInherit());
+            if (messages.getMasterException().contains(".")) {
+                String className = messages.getMasterException().substring(messages.getMasterException().lastIndexOf(".")+1);
+                String packageName = messages.getMasterException().substring(0, messages.getMasterException().lastIndexOf("."));
+                masterException.setMasterClassName(className);
+                masterException.setMasterPackageName(packageName);
+            } else {
+                masterException.setMasterClassName(messages.getMasterException());
+                masterException.setMasterPackageName(config.getClassPackageName());
+            }
+        }
+        return masterException;
     }
 
     private void postProcessFindInheritClassName(List<Entry> entries) {
@@ -215,7 +240,7 @@ public class ExceptionBuilder {
         ve.init();
     }
 
-    private void buildExceptionsFromTemplate(List<Entry> entries, File srcTarget) throws java.lang.Exception {
+    private void buildExceptionsFromTemplate(List<Entry> entries, File srcTarget, MasterException masterException) throws java.lang.Exception {
 
         for (Entry entry : entries) {
             if (entry.getException() != null) {
@@ -236,9 +261,29 @@ public class ExceptionBuilder {
 
                 writer.flush();
                 writer.close();
-
             }
         }
+    }
+
+    private void buildMasterExceptionsFromTemplate(File srcTarget, MasterException masterException) throws java.lang.Exception {
+
+                InputStream input = ExceptionBuilder.class.getClassLoader()
+                        .getResourceAsStream("template/masterexception.vm");
+                if (input == null) {
+                    throw new IOException("Template path doesn't exist");
+                }
+
+                File targetFile = new File(srcTarget, makeJavaFileAppendixFromFQ(masterException.getMasterPackageName()+"."+masterException.getMasterClassName()) );
+                targetFile.getParentFile().mkdirs();
+
+                VelocityContext context = new VelocityContext();
+                context.put("e", masterException);
+
+                BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile, false));
+                ve.evaluate(context, writer, "masterexception.vm", new InputStreamReader(input));
+
+                writer.flush();
+                writer.close();
     }
 
     private void buildPropertiesFromTemplate(List<Entry> entries, File srcTarget, Configurate config) throws java.lang.Exception {
