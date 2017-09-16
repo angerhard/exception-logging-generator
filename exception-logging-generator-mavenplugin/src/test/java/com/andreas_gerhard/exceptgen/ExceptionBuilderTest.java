@@ -10,10 +10,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class ExceptionBuilderTest {
 
@@ -70,63 +67,62 @@ public class ExceptionBuilderTest {
 
     @Test
     public void initCreateException() throws Exception {
-        List<Entry> entries = getEntries();
-        for (Entry entry : entries) {
-            Assert.assertNotNull(entry.getDomain());
-            if (entry.getDomain().equals("CUSTOMER.001")) {
-                Assert.assertNotNull(entry.getException());
-                Assert.assertEquals("test.test.CustomerException", entry.getException().getFqClassName());
-            }
-        }
-
+        Optional<Entry> entry = TestTool.retrieveEntry("CUSTOMER.001", getEntries());
+        Assert.assertTrue(entry.isPresent());
+        Assert.assertNotNull(entry.get().getException());
+        Assert.assertEquals("com.andreasgerhard.exception.CustomerException", entry.get().getException().getFqClassName());
     }
 
     @Test
     public void initInheritException() throws Exception {
-        List<Entry> entries = getEntries();
-        for (Entry entry : entries) {
-            Assert.assertNotNull(entry.getDomain());
-            if (entry.getDomain().equals("CUSTOMER.002")) {
-                Assert.assertNotNull(entry.getException());
-                Assert.assertEquals("test.test.CustomerException", entry.getException().getFqClassNameInherit());
-            }
-        }
+        Optional<Entry> entry = TestTool.retrieveEntry("CUSTOMER.002", getEntries());
+        Assert.assertTrue(entry.isPresent());
+        Assert.assertNotNull(entry.get().getException());
+        Assert.assertEquals("com.andreasgerhard.exception.CustomerException", entry.get().getException().getFqClassNameInherit());
     }
 
     @Test
     public void initFrontendText() throws Exception {
-        List<Entry> entries = getEntries();
-        for (Entry entry : entries) {
-            Assert.assertNotNull(entry.getDomain());
-            if (entry.getDomain().equals("CUSTOMER.001")) {
-                Assert.assertNotNull(entry.getException().getFrontEndText());
-                Assert.assertEquals(2, entry.getException().getFrontEndText().size());
-            }
-        }
+        Optional<Entry> entry = TestTool.retrieveEntry("CUSTOMER.001", getEntries());
+        Assert.assertTrue(entry.isPresent());
+        Assert.assertNotNull(entry.get().getException().getFrontEndText());
+        Assert.assertEquals(2, entry.get().getException().getFrontEndText().size());
     }
 
     @Test
     public void initBackendParameter() throws Exception {
-        List<Entry> entries = getEntries();
-        for (Entry entry : entries) {
-            Assert.assertNotNull(entry.getDomain());
-            if (entry.getDomain().equals("CUSTOMER.003")) {
-                Assert.assertNotNull(entry.getBackendParameters());
-                Assert.assertEquals("Integer id, String name", entry.getParameterString());
-            }
-        }
+        Optional<Entry> entry = TestTool.retrieveEntry("CUSTOMER.003", getEntries());
+        Assert.assertTrue(entry.isPresent());
+        Assert.assertNotNull(entry.get().getBackendParameters());
+        Assert.assertEquals("Integer id, String name", entry.get().getParameterString());
     }
 
     @Test
     public void initFrontendParameter() throws Exception {
-        List<Entry> entries = getEntries();
-        for (Entry entry : entries) {
-            Assert.assertNotNull(entry.getDomain());
-            if (entry.getDomain().equals("CUSTOMER.002")) {
-                Assert.assertNotNull(entry.getException().getFrontEndParameters());
-                Assert.assertEquals("Integer id", entry.getException().getParameterString());
-            }
-        }
+        Optional<Entry> entry = TestTool.retrieveEntry("CUSTOMER.002", getEntries());
+        Assert.assertTrue(entry.isPresent());
+        Assert.assertNotNull(entry.get().getException().getFrontEndParameters());
+        Assert.assertEquals("Integer id", entry.get().getException().getParameterString());
+    }
+
+    @Test
+    public void correctPackage() throws Exception {
+        Optional<Entry> entry = TestTool.retrieveEntry("CUSTOMER.001", getEntries());
+        Entry e = entry.get();
+        String fqClassName = e.getException().getFqClassName();
+        Assert.assertTrue(String.format("Package has to be overwriten when defined in xml " +
+                "(should: com.andreasgerhard.exception, is %s).",
+                fqClassName), fqClassName.startsWith("com.andreasgerhard.exception"));
+    }
+
+    @Test
+    public void correctPackageUsingStandard() throws Exception {
+        Optional<Entry> entry = TestTool.retrieveEntry("CUSTOMER.001", getEntries());
+        Entry e = entry.get();
+        String fqClassName = e.getException().getFqClassName();
+        Assert.assertTrue(String.format("Package has to be overwriten when defined in xml " +
+                "(should: com.andreasgerhard.exception, is %s).",
+                fqClassName), fqClassName.startsWith("com.andreasgerhard.exception"));
     }
 
     @Ignore
