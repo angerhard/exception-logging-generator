@@ -1,45 +1,24 @@
 package com.andreas_gerhard.exceptgen;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-
+import com.andreas_gerhard.exceptgen.vo.*;
+import com.andreas_gerhard.exceptgen.vo.Exception;
+import com.andreasgerhard.exceptgen.messages.*;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 
-import com.andreas_gerhard.exceptgen.vo.Entry;
-import com.andreas_gerhard.exceptgen.vo.Exception;
-import com.andreas_gerhard.exceptgen.vo.MasterException;
-import com.andreas_gerhard.exceptgen.vo.Parameter;
-import com.andreas_gerhard.exceptgen.vo.Text;
-import com.andreasgerhard.exceptgen.messages.ExceptionType;
-import com.andreasgerhard.exceptgen.messages.FrontendMessageType;
-import com.andreasgerhard.exceptgen.messages.FrontendMessagesType;
-import com.andreasgerhard.exceptgen.messages.MessageType;
-import com.andreasgerhard.exceptgen.messages.MessagesType;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import java.io.*;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class ExceptionBuilder {
 
@@ -159,7 +138,7 @@ public class ExceptionBuilder {
         if (messageType.getException() != null) {
             ExceptionType exceptionType = messageType.getException();
             Exception exception = new Exception();
-            exception.setPackageName(config.getClassPackageName() == null ? exceptionType.getPackage() : config.getClassPackageName());
+            exception.setPackageName(exceptionType.getPackage() == null || exceptionType.getPackage().isEmpty() ? config.getClassPackageName() : exceptionType.getPackage());
             exception.setFqClassName(String.format("%s.%sException", exception.getPackageName(), ensureFirstLetterBig(messageType.getName())));
             exception.setClassName(String.format("%sException", ensureFirstLetterBig(messageType.getName())));
             exception.setFqClassNameInherit(exceptionType.getInherit());
