@@ -57,11 +57,17 @@ public class Mojo extends AbstractMojo implements Configurate {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        try {
-            new ExceptionBuilder(this);
-        } catch (Exception e) {
-            throw new MojoExecutionException(e.getMessage(), e);
+        File configXmlFile = new File(getBaseDir(), getPathToMessageXml());
+        if (configXmlFile.exists()) {
+            try {
+                new ExceptionBuilder(this);
+            } catch (Exception e) {
+                throw new MojoExecutionException(e.getMessage(), e);
+            }
+        } else {
+            getLog().info("no message.xml, do not generate exception classes.");
         }
+
     }
 
     @Override
