@@ -43,5 +43,10 @@ public class ${e.exception.className} #if("$!{e.exception.fqClassNameInherit}" !
     public int getReturnCode() {
         return returnCode;
     }
+
+    @Override
+    public String getMessage() {
+        return getMessagePayload();
+    }
 }
 
