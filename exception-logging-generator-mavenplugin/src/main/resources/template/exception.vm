@@ -34,7 +34,7 @@ public class ${e.exception.className} #if("$!{e.exception.fqClassNameInherit}" !
             String message = resourceBundle.getString(_exceptionIdentificaionDomain);
 #foreach($p in ${e.exception.frontEndParameters})            message = message.replaceAll("${p.tag}", String.valueOf(this.${p.name}));
 #end
-            result.append(String.format("\t[\"%s\", \"%s\"]\n", locale, message));
+            result.append(String.format("\t\"%s\", \"%s\"\n", locale, message));
         }
         result.append("}\n");
         return result.toString();
