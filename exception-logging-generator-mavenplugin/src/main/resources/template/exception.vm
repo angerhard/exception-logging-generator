@@ -29,12 +29,14 @@ public class ${e.exception.className} #if("$!{e.exception.fqClassNameInherit}" !
 
     public String getMessagePayload() {
         StringBuilder result = new StringBuilder("{\n");
+        boolean first = true;
         for (String locale : new String[]{${e.exception.localeStr}}) {
             ResourceBundle resourceBundle = ResourceBundle.getBundle("${e.properties}", Locale.forLanguageTag(locale));
             String message = resourceBundle.getString(_exceptionIdentificaionDomain);
 #foreach($p in ${e.exception.frontEndParameters})            message = message.replaceAll("${p.tag}", String.valueOf(this.${p.name}));
 #end
-            result.append(String.format("\t\"%s\", \"%s\"\n", locale, message));
+            result.append(String.format("\t%s\"%s\": \"%s\"\n", (first ? "" : ","), locale, message));
+            first = false;
         }
         result.append("}\n");
         return result.toString();
