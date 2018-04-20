@@ -296,7 +296,7 @@ public class ExceptionBuilder {
 
             OutputStreamWriter streamWriter = new OutputStreamWriter(
                     new FileOutputStream(targetFile),
-                    Charset.forName(config.getEncoding()).newEncoder()
+                    Charset.forName("ISO-8859-1").newEncoder()
             );
             BufferedWriter writer = new BufferedWriter(streamWriter);
             ve.evaluate(context, writer, "exception.vm", new InputStreamReader(input));
