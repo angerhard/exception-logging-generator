@@ -15,6 +15,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,13 +23,13 @@ import java.util.stream.Collectors;
 
 public class ExceptionBuilder {
 
-    private VelocityEngine ve;
-
-    private Set<String> domainDuplicateChecker = new HashSet<>();
     private final List<Entry> entries;
+    private VelocityEngine ve;
+    private Set<String> domainDuplicateChecker = new HashSet<>();
 
     /**
      * Generates the needed classes, given by the configuration of th emaven plugin.
+     *
      * @param config the abstract configuration from maven plugin
      * @throws java.lang.Exception something gone wrong -> see exception(
      */
@@ -54,10 +55,17 @@ public class ExceptionBuilder {
         initTemplateEngineInternal();
 
         if (masterException != null) {
-            buildMasterExceptionsFromTemplate(srcPath, masterException);
+            buildMasterExceptionsFromTemplate(srcPath, masterException, config);
         }
         buildExceptionsFromTemplate(entries, srcPath, masterException);
         buildPropertiesFromTemplate(entries, resourcesPath, config);
+    }
+
+    private static String ensureFirstLetterBig(String str) {
+        if (str != null && str.length() > 1) {
+            return str.substring(0, 1).toUpperCase() + str.substring(1);
+        }
+        return str;
     }
 
     private MasterException retrieveMasterException(Configurate config, MessagesType messages) {
@@ -66,7 +74,7 @@ public class ExceptionBuilder {
             masterException = new MasterException();
             masterException.setMasterInheritClassName(messages.getMasterExceptionInherit());
             if (messages.getMasterException().contains(".")) {
-                String className = messages.getMasterException().substring(messages.getMasterException().lastIndexOf(".")+1);
+                String className = messages.getMasterException().substring(messages.getMasterException().lastIndexOf(".") + 1);
                 String packageName = messages.getMasterException().substring(0, messages.getMasterException().lastIndexOf("."));
                 masterException.setMasterClassName(className);
                 masterException.setMasterPackageName(packageName);
@@ -93,13 +101,6 @@ public class ExceptionBuilder {
                 }
             }
         }
-    }
-
-    private static String ensureFirstLetterBig(String str) {
-        if (str != null && str.length() > 1) {
-            return str.substring(0, 1).toUpperCase() + str.substring(1);
-        }
-        return str;
     }
 
     private File retrieveSrcPathFromConfiguration(Configurate config) throws java.lang.Exception {
@@ -142,7 +143,7 @@ public class ExceptionBuilder {
             exception.setFqClassName(String.format("%s.%sException", exception.getPackageName(), ensureFirstLetterBig(messageType.getName())));
             exception.setClassName(String.format("%sException", ensureFirstLetterBig(messageType.getName())));
             exception.setFqClassNameInherit(exceptionType.getInherit());
-            if (exceptionType.getReturnCode()!= null && exceptionType.getReturnCode().matches("^\\d+$")) {
+            if (exceptionType.getReturnCode() != null && exceptionType.getReturnCode().matches("^\\d+$")) {
                 exception.setReturnCode(Integer.parseInt(exceptionType.getReturnCode()));
             }
             SortedSet<Parameter> frontEndParams = new TreeSet<>();
@@ -197,7 +198,7 @@ public class ExceptionBuilder {
                 parameter.setName(group);
                 parameter.setFq("java.lang.String");
             }
-            parameter.setTag("\\\\{"+parameter.getName()+":([^}]*?)\\\\}");
+            parameter.setTag("\\\\{" + parameter.getName() + ":([^}]*?)\\\\}");
             result.add(parameter);
         }
     }
@@ -229,7 +230,7 @@ public class ExceptionBuilder {
                     throw new IOException("Template path doesn't exist");
                 }
                 Exception exc = entry.getException();
-                File targetFile = new File(srcTarget, makeJavaFileAppendixFromFQ(exc.getFqClassName()) );
+                File targetFile = new File(srcTarget, makeJavaFileAppendixFromFQ(exc.getFqClassName()));
                 targetFile.getParentFile().mkdirs();
 
                 VelocityContext context = new VelocityContext();
@@ -244,25 +245,30 @@ public class ExceptionBuilder {
         }
     }
 
-    private void buildMasterExceptionsFromTemplate(File srcTarget, MasterException masterException) throws java.lang.Exception {
+    private void buildMasterExceptionsFromTemplate(File srcTarget, MasterException masterException, Configurate config) throws java.lang.Exception {
 
-                InputStream input = ExceptionBuilder.class.getClassLoader()
-                        .getResourceAsStream("template/masterexception.vm");
-                if (input == null) {
-                    throw new IOException("Template path doesn't exist");
-                }
+        InputStream input = ExceptionBuilder.class.getClassLoader()
+                .getResourceAsStream("template/masterexception.vm");
+        if (input == null) {
+            throw new IOException("Template path doesn't exist");
+        }
 
-                File targetFile = new File(srcTarget, makeJavaFileAppendixFromFQ(masterException.getMasterPackageName()+"."+masterException.getMasterClassName()) );
-                targetFile.getParentFile().mkdirs();
+        File targetFile = new File(srcTarget, makeJavaFileAppendixFromFQ(masterException.getMasterPackageName() + "." + masterException.getMasterClassName()));
+        targetFile.getParentFile().mkdirs();
 
-                VelocityContext context = new VelocityContext();
-                context.put("e", masterException);
+        VelocityContext context = new VelocityContext();
+        context.put("e", masterException);
 
-                BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile, false));
-                ve.evaluate(context, writer, "masterexception.vm", new InputStreamReader(input));
+        OutputStreamWriter streamWriter = new OutputStreamWriter(
+                new FileOutputStream(targetFile),
+                Charset.forName(config.getEncoding()).newEncoder()
+        );
 
-                writer.flush();
-                writer.close();
+        BufferedWriter writer = new BufferedWriter(streamWriter);
+        ve.evaluate(context, writer, "masterexception.vm", new InputStreamReader(input));
+
+        writer.flush();
+        writer.close();
     }
 
     private void buildPropertiesFromTemplate(List<Entry> entries, File srcTarget, Configurate config) throws java.lang.Exception {
@@ -288,7 +294,11 @@ public class ExceptionBuilder {
             context.put("entries", entries);
             context.put("language", language);
 
-            BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile, false));
+            OutputStreamWriter streamWriter = new OutputStreamWriter(
+                    new FileOutputStream(targetFile),
+                    Charset.forName(config.getEncoding()).newEncoder()
+            );
+            BufferedWriter writer = new BufferedWriter(streamWriter);
             ve.evaluate(context, writer, "exception.vm", new InputStreamReader(input));
 
             writer.flush();

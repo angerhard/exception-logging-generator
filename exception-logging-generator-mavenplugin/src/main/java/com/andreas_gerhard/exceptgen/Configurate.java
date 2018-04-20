@@ -22,4 +22,6 @@ public interface Configurate {
     File getBaseDir();
 
     String getResourcesPath();
+
+    String getEncoding();
 }

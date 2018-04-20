@@ -8,6 +8,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 @org.apache.maven.plugins.annotations.Mojo(name="generate-exceptions")
 public class Mojo extends AbstractMojo implements Configurate {
@@ -44,6 +46,13 @@ public class Mojo extends AbstractMojo implements Configurate {
      */
     @Parameter( property = "generate-exceptions.propertyFileName", defaultValue = "exception")
     private String propertyFileName;
+
+
+    @Parameter(readonly = true, defaultValue = "${project.build.sourceEncoding}")
+    private String sourceEncoding;
+
+    @Parameter(readonly = true, defaultValue = "${project.reporting.outputEncoding}")
+    private String outputEncoding;
 
     /**
      * Define a fully qualified class name to generate a helper logging text class buider.
@@ -108,5 +117,11 @@ public class Mojo extends AbstractMojo implements Configurate {
     @Override
     public String getResourcesPath() {
         return resourcesPath;
+    }
+
+
+    @Override
+    public String getEncoding() {
+        return outputEncoding == null ? (sourceEncoding == null ? Charset.defaultCharset().name() : sourceEncoding) : outputEncoding;
     }
 }
