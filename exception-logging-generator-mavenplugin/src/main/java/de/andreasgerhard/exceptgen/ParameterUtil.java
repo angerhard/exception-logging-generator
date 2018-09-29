@@ -1,6 +1,6 @@
-package com.andreas_gerhard.exceptgen;
+package de.andreasgerhard.exceptgen;
 
-import com.andreas_gerhard.exceptgen.vo.Parameter;
+import de.andreasgerhard.exceptgen.model.Parameter;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;

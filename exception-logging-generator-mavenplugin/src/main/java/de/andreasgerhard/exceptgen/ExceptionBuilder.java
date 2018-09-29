@@ -1,8 +1,9 @@
-package com.andreas_gerhard.exceptgen;
+package de.andreasgerhard.exceptgen;
 
 import com.andreas_gerhard.exceptgen.vo.*;
-import com.andreas_gerhard.exceptgen.vo.Exception;
+import de.andreasgerhard.exceptgen.model.*;
 import com.andreasgerhard.exceptgen.messages.*;
+import de.andreasgerhard.exceptgen.model.Exception;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;

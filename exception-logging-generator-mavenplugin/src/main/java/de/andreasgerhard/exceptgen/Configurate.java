@@ -1,4 +1,4 @@
-package com.andreas_gerhard.exceptgen;
+package de.andreasgerhard.exceptgen;
 
 import org.apache.maven.plugin.logging.Log;
 

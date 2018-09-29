@@ -1,6 +1,6 @@
-package com.andreas_gerhard.exceptgen;
+package de.andreasgerhard.exceptgen;
 
-import com.andreas_gerhard.exceptgen.vo.Entry;
+import de.andreasgerhard.exceptgen.model.Entry;
 
 import java.util.List;
 import java.util.Optional;

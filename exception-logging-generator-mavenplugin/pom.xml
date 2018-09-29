@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.andreas_gerhard.exceptgen</groupId>
+    <groupId>de.andreasgerhard</groupId>
     <artifactId>exception-logging-generator-mavenplugin</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <parent>
-        <groupId>com.andreas_gerhard.exceptgen</groupId>
+        <groupId>de.andreasgerhard</groupId>
         <artifactId>exception-logging-generator</artifactId>
         <version>0.1-SNAPSHOT</version>
     </parent>
@@ -33,6 +33,12 @@
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
             <version>3.3.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.2</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

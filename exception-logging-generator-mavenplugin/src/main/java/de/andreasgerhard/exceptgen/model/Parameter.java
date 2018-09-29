@@ -1,44 +1,21 @@
-package com.andreas_gerhard.exceptgen.vo;
+package de.andreasgerhard.exceptgen.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.Objects;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Builder
 public class Parameter implements Comparable<Parameter> {
     private String name;
     private String fq;
     private String tag;
     private boolean ignoreI18n;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getFq() {
-        return fq;
-    }
-
-    public void setFq(String fq) {
-        this.fq = fq;
-    }
-
-    public boolean isIgnoreI18n() {
-        return ignoreI18n;
-    }
-
-    public void setIgnoreI18n(boolean ignoreI18n) {
-        this.ignoreI18n = ignoreI18n;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
 
     public String getFieldDeclatation() {
         return String.format("private %s %s;", getFq(), getName());
@@ -64,8 +41,8 @@ public class Parameter implements Comparable<Parameter> {
     @Override
     public int compareTo(Parameter parameter) {
         return parameter == null
-                ||  parameter.getName() == null
+                || parameter.getName() == null
                 ? 1
-                : parameter.getName().compareTo(getName() == null ? "" : getName())*-1;
+                : parameter.getName().compareTo(getName() == null ? "" : getName()) * -1;
     }
 }

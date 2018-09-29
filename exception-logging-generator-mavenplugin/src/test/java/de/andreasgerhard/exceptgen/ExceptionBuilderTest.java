@@ -1,6 +1,6 @@
-package com.andreas_gerhard.exceptgen;
+package de.andreasgerhard.exceptgen;
 
-import com.andreas_gerhard.exceptgen.vo.Entry;
+import de.andreasgerhard.exceptgen.model.Entry;
 import org.apache.maven.monitor.logging.DefaultLog;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.logging.console.ConsoleLogger;

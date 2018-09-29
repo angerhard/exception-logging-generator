@@ -1,4 +1,4 @@
-package com.andreas_gerhard.exceptgen;
+package de.andreasgerhard.exceptgen;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -9,7 +9,6 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 @org.apache.maven.plugins.annotations.Mojo(name="generate-exceptions")
 public class Mojo extends AbstractMojo implements Configurate {
