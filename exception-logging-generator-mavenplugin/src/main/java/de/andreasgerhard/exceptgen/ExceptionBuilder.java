@@ -1,8 +1,7 @@
 package de.andreasgerhard.exceptgen;
 
-import com.andreas_gerhard.exceptgen.vo.*;
-import de.andreasgerhard.exceptgen.model.*;
 import com.andreasgerhard.exceptgen.messages.*;
+import de.andreasgerhard.exceptgen.model.*;
 import de.andreasgerhard.exceptgen.model.Exception;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -45,10 +44,10 @@ public class ExceptionBuilder {
 
         for (MessageType messageType : messages.getMessage()) {
             validateMessageType(config, messageType);
-            Entry entry = new Entry();
-            entry.setProperties(config.getPropertyFileName());
+            Entry.EntryBuilder entryBuilder = Entry.builder().properties(config.getPropertyFileName());
+            buildEntry(messageType, entryBuilder);
+            Entry entry = entryBuilder.build();
             entries.add(entry);
-            buildEntry(messageType, entry);
             buildException(config, messageType, entry);
         }
 
@@ -72,17 +71,17 @@ public class ExceptionBuilder {
     private MasterException retrieveMasterException(Configurate config, MessagesType messages) {
         MasterException masterException = null;
         if (messages.getMasterException() != null) {
-            masterException = new MasterException();
-            masterException.setMasterInheritClassName(messages.getMasterExceptionInherit());
+            MasterException.MasterExceptionBuilder masterExceptionBuilder = MasterException.builder().masterInheritClassName(messages.getMasterExceptionInherit());
             if (messages.getMasterException().contains(".")) {
                 String className = messages.getMasterException().substring(messages.getMasterException().lastIndexOf(".") + 1);
                 String packageName = messages.getMasterException().substring(0, messages.getMasterException().lastIndexOf("."));
-                masterException.setMasterClassName(className);
-                masterException.setMasterPackageName(packageName);
+                masterExceptionBuilder.masterClassName(className);
+                masterExceptionBuilder.masterPackageName(packageName);
             } else {
-                masterException.setMasterClassName(messages.getMasterException());
-                masterException.setMasterPackageName(config.getClassPackageName());
+                masterExceptionBuilder.masterClassName(messages.getMasterException());
+                masterExceptionBuilder.masterPackageName(config.getClassPackageName());
             }
+            masterException = masterExceptionBuilder.build();
         }
         return masterException;
     }
@@ -97,7 +96,7 @@ public class ExceptionBuilder {
                     if (eInterit.getException() != null
                             && eInterit.getException().getFqClassName() != null
                             && eInterit.getException().getFqClassName().endsWith(exception.getFqClassNameInherit())) {
-                        exception.setFqClassNameInherit(eInterit.getException().getFqClassName());
+                        exception.updateFqClassNameInherit(eInterit.getException().getFqClassName());
                     }
                 }
             }
@@ -127,35 +126,39 @@ public class ExceptionBuilder {
         return file;
     }
 
-    private void buildEntry(MessageType messageType, Entry entry) {
-        entry.setDomain(messageType.getDomain());
-        entry.setName(messageType.getName());
-        entry.setBackendText(messageType.getBackendMessage());
+    private void buildEntry(MessageType messageType, Entry.EntryBuilder entry) {
+        entry.domain(messageType.getDomain());
+        entry.name(messageType.getName());
+        entry.backendText(messageType.getBackendMessage());
         SortedSet<Parameter> backEndParams = new TreeSet<>();
         gainParameter(messageType.getBackendMessage(), backEndParams);
-        entry.setBackendParameters(new ArrayList<>(backEndParams));
+        entry.backendParameters(new ArrayList<>(backEndParams));
     }
 
     private void buildException(Configurate config, MessageType messageType, Entry entry) {
         if (messageType.getException() != null) {
             ExceptionType exceptionType = messageType.getException();
-            Exception exception = new Exception();
-            exception.setPackageName(exceptionType.getPackage() == null || exceptionType.getPackage().isEmpty() ? config.getClassPackageName() : exceptionType.getPackage());
-            exception.setFqClassName(String.format("%s.%sException", exception.getPackageName(), ensureFirstLetterBig(messageType.getName())));
-            exception.setClassName(String.format("%sException", ensureFirstLetterBig(messageType.getName())));
-            exception.setFqClassNameInherit(exceptionType.getInherit());
+            Exception.ExceptionBuilder exceptionBuilder = Exception.builder();
+            String packageName = exceptionType.getPackage() == null || exceptionType.getPackage().isEmpty() ? config.getClassPackageName() : exceptionType.getPackage();
+            exceptionBuilder.packageName(packageName);
+            exceptionBuilder.fqClassName(String.format("%s.%sException", packageName, ensureFirstLetterBig(messageType.getName())));
+            exceptionBuilder.className(String.format("%sException", ensureFirstLetterBig(messageType.getName())));
+            exceptionBuilder.fqClassNameInherit(exceptionType.getInherit());
             if (exceptionType.getReturnCode() != null && exceptionType.getReturnCode().matches("^\\d+$")) {
-                exception.setReturnCode(Integer.parseInt(exceptionType.getReturnCode()));
+                exceptionBuilder.returnCode(Integer.parseInt(exceptionType.getReturnCode()));
             }
             SortedSet<Parameter> frontEndParams = new TreeSet<>();
             FrontendMessagesType frontendMessages = messageType.getFrontendMessages();
             List<FrontendMessageType> frontendMessage = frontendMessages.getFrontendMessage();
+            List<Text> frontEndTexts = new ArrayList<>();
             for (FrontendMessageType frontendMessageType : frontendMessage) {
                 gainParameter(frontendMessageType.getValue(), frontEndParams);
-                exception.getFrontEndText().add(new Text(frontendMessageType.getLocale(), frontendMessageType.getValue()));
+                frontEndTexts.add(new Text(frontendMessageType.getLocale(), frontendMessageType.getValue()));
             }
-            exception.setFrontEndParameters(new ArrayList<>(frontEndParams));
-            entry.setException(exception);
+            exceptionBuilder.frontEndParameters(new ArrayList<>(frontEndParams));
+            exceptionBuilder.frontEndText(frontEndTexts);
+            Exception exception = exceptionBuilder.build();
+            entry.updateException(exception);
         }
     }
 
@@ -183,24 +186,25 @@ public class ExceptionBuilder {
         Pattern p = Pattern.compile("\\{(?<parameter>([^}]*?))\\}");
         Matcher matcher = p.matcher(text);
         while (matcher.find()) {
-            Parameter parameter = new Parameter();
-
+            Parameter.ParameterBuilder parameter = Parameter.builder();
             String group = matcher.group("parameter");
+            String name = "";
             if (group.contains(":")) {
                 String[] split = group.split(":");
-                parameter.setName(split[0]);
+                name = (split[0]);
                 if (split[1].startsWith("!")) {
-                    parameter.setIgnoreI18n(true);
-                    parameter.setFq(split[1].substring(1));
+                    parameter.ignoreI18n(true);
+                    parameter.fq(split[1].substring(1));
                 } else {
-                    parameter.setFq(split[1]);
+                    parameter.fq(split[1]);
                 }
             } else {
-                parameter.setName(group);
-                parameter.setFq("java.lang.String");
+                name = (group);
+                parameter.fq("java.lang.String");
             }
-            parameter.setTag("\\\\{" + parameter.getName() + ":([^}]*?)\\\\}");
-            result.add(parameter);
+            parameter.name(name);
+            parameter.tag(String.format("\\\\{%s:([^}]*?)\\\\}", name));
+            result.add(parameter.build());
         }
     }
 

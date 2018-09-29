@@ -22,6 +22,9 @@ public class Entry {
     private String properties;
     private Exception exception;
 
+    public void updateException(Exception exception) {
+        this.exception = exception;
+    }
 
     public String getParameterString() {
         return ParameterUtil.getParameterString(getBackendParameters());

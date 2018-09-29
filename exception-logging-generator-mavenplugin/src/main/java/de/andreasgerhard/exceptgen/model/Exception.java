@@ -32,6 +32,10 @@ public class Exception {
         return ParameterUtil.getParameterString(getFrontEndParameters()) + (!getFrontEndParameters().isEmpty() ? "," : "");
     }
 
+    public void addFrontEndText(Text text) {
+        frontEndText.add(text);
+    }
+
     public String getLocaleStr() {
         List<Text> frontEndText = getFrontEndText();
         List<String> locales = new ArrayList<>();
@@ -41,4 +45,8 @@ public class Exception {
         return StringUtils.join(locales, ", ");
     }
 
+    public void updateFqClassNameInherit(String fqClassNameInherit) {
+
+
+    }
 }

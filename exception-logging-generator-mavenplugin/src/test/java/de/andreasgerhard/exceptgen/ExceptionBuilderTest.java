@@ -59,6 +59,11 @@ public class ExceptionBuilderTest {
         }
 
         @Override
+        public String getEncoding() {
+            return "UTF-8";
+        }
+
+        @Override
         public Log getLog() {
             return new DefaultLog(new ConsoleLogger());
         }
