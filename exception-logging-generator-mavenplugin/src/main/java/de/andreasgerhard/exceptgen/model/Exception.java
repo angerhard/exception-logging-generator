@@ -46,7 +46,7 @@ public class Exception {
     }
 
     public void updateFqClassNameInherit(String fqClassNameInherit) {
-
+        this.fqClassNameInherit = fqClassNameInherit;
 
     }
 }
