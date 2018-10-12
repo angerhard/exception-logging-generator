@@ -10,7 +10,6 @@
 
     <modules>
         <module>exception-logging-generator-mavenplugin</module>
-        <module>exception-logging-generator-commons</module>
     </modules>
 
     <name>Exception and logging generator</name>
