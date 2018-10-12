@@ -31,7 +31,7 @@ public class ExceptionBuilder {
      * Generates the needed classes, given by the configuration of th emaven plugin.
      *
      * @param config the abstract configuration from maven plugin
-     * @throws java.lang.Exception something gone wrong -> see exception(
+     * @throws java.lang.Exception something gone wrong,  see exception(
      */
     public ExceptionBuilder(Configurate config) throws java.lang.Exception {
 
