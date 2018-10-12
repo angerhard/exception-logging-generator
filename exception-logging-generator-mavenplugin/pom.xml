@@ -6,12 +6,12 @@
 
     <groupId>de.andreasgerhard</groupId>
     <artifactId>exception-logging-generator-mavenplugin</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>maven-plugin</packaging>
     <parent>
         <groupId>de.andreasgerhard</groupId>
         <artifactId>exception-logging-generator</artifactId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.1</version>
     </parent>
 
     <dependencies>
